@@ -7,7 +7,7 @@
 #include <RHHardwareSPI.h>
 
 #ifdef RH_HAVE_HARDWARE_SPI
-
+#define RH_ESP32_USE_HSPI
 // Declare a single default instance of the hardware SPI interface class
 RHHardwareSPI hardware_spi;
 

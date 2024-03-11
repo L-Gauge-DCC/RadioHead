@@ -5,6 +5,7 @@
 
 #include <RH_RF95.h>
 
+#define SERIAL_DEBUG
 // Maybe a mutex for multithreading on Raspberry Pi?
 #ifdef RH_USE_MUTEX
 RH_DECLARE_MUTEX(lock);
@@ -42,9 +43,11 @@ RH_RF95::RH_RF95(uint8_t slaveSelectPin, uint8_t interruptPin, RHGenericSPI& spi
 
 bool RH_RF95::init()
 {
+    Serial.println("start init");
     if (!RHSPIDriver::init())
 	return false;
 
+    Serial.println("1");
 #ifdef RH_USE_MUTEX
     if (RH_MUTEX_INIT(lock) != 0)
     { 
@@ -60,6 +63,7 @@ bool RH_RF95::init()
 	interruptNumber = digitalPinToInterrupt(_interruptPin);
 	if (interruptNumber == NOT_AN_INTERRUPT)
 	    return false;
+    Serial.println("2");
 #ifdef RH_ATTACHINTERRUPT_TAKES_PIN_NUMBER
 	interruptNumber = _interruptPin;
 #endif
@@ -76,10 +80,10 @@ bool RH_RF95::init()
     // Check we are in sleep mode, with LORA set
     if (spiRead(RH_RF95_REG_01_OP_MODE) != (RH_RF95_MODE_SLEEP | RH_RF95_LONG_RANGE_MODE))
     {
-//	Serial.println(spiRead(RH_RF95_REG_01_OP_MODE), HEX);
+	Serial.println(spiRead(RH_RF95_REG_01_OP_MODE), HEX);
+    Serial.println("3");
 	return false; // No device present?
     }
-
 
     if (_interruptPin != RH_INVALID_PIN)
     {
@@ -94,7 +98,9 @@ bool RH_RF95::init()
 	// ON some devices, notably most Arduinos, the interrupt pin passed in is actually the 
 	// interrupt number. You have to figure out the interruptnumber-to-interruptpin mapping
 	// yourself based on knwledge of what Arduino board you are running on.
-	if (_myInterruptIndex == 0xff)
+	
+    Serial.println("4");
+    if (_myInterruptIndex == 0xff)
 	{
 	    // First run, no interrupt allocated yet
 	    if (_interruptCount <= RH_RF95_NUM_INTERRUPTS)
@@ -102,6 +108,7 @@ bool RH_RF95::init()
 	    else
 		return false; // Too many devices, not enough interrupt vectors
 	}
+    Serial.println("5");
 	_deviceForInterrupt[_myInterruptIndex] = this;
 	
 	if (_myInterruptIndex == 0)
@@ -113,6 +120,7 @@ bool RH_RF95::init()
 	else
 	    return false; // Too many devices, not enough interrupt vectors
     }
+    Serial.println("6");
     
     // Set up FIFO
     // We configure so that we can use the entire 256 byte FIFO for either receive
